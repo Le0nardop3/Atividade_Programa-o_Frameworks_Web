@@ -59,6 +59,20 @@ class AlunoController {
     }
 
 
+    async delete(request, response) {
+        const { id } = request.params;
+
+        try {
+            await alunoService.delete(id);
+
+            return response.status(204).send();
+        } catch (e) {
+            return response.status(e.statusCode || 500).json({
+                error: e.message
+            });
+        }
+    }
+
     async create(request, response) {
         try {
             const aluno = await alunoService.create(request.body);
