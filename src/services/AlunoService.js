@@ -35,6 +35,49 @@ class AlunoService {
         return aluno;
     }
 
+
+    async update(id, dados) {
+        const { nome, email } = dados;
+
+        // Reaproveito AlunoNaoEncontradoError para manter o mesmo tratamento
+        // usado na busca por ID. Para dados inválidos e e-mail duplicado,
+        // utilizo AlunoInvalidoError, pois são erros causados pelos dados enviados.
+
+        if (!nome && !email) {
+            throw new AlunoInvalidoError("Informe nome ou email para atualizar");
+        }
+
+        const aluno = await prisma.aluno.findUnique({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        if (!aluno) {
+            throw new AlunoNaoEncontradoError();
+        }
+
+        try {
+            const alunoAtualizado = await prisma.aluno.update({
+                where: {
+                    id: Number(id)
+                },
+                data: {
+                    ...(nome && { nome }),
+                    ...(email && { email })
+                }
+            });
+
+            return alunoAtualizado;
+        } catch (e) {
+            if (e.code === "P2002") {
+                throw new AlunoInvalidoError("E-mail já cadastrado");
+            }
+
+            throw e;
+        }
+    }
+
     async create(aluno) {
         const { nome, email } = aluno;
         if (!nome || !email) {
